@@ -3,18 +3,17 @@ PaNOSC Portal API CLI Client
 
 A CLI client to test the PaNOSC Portal API.
 
-The CLI performs an initial login to an SSO to obtain an access token for the Portal API. The config for the SSO goes in config.json with the following structure:
+The CLI performs an initial login to an IDP to obtain an access token for the Portal API. The config for the IDP goes in config.json with the following structure:
 ```
 {
-  "sso": {
-    "host": "sso.com",
-    "realm": "the_realm",
+  "idp": {
+    "url": "https://idp.com/auth/url/to/obtain/token",
     "clientId": "a_client_id"
   }
 }
 ```
 
-The user is requested for a username and password which are passed to the SSO. Having successfully received a token, this is saved locally at .token.json. Following commands verify the validity of the token and refresh it if required. The access token is then forwarded to all portal API requests.
+The user is requested for a username and password which are passed to the IDP. Having successfully received a token, this is saved locally at .token.json. Following commands verify the validity of the token and refresh it if required. The access token is then forwarded to all portal API requests.
 
 <!-- toc -->
 * [Usage](#usage)

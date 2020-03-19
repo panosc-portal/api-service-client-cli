@@ -66,4 +66,4 @@ typings/
 .idea
 DEVELOPING.md
 config.json
-.token.json
+token.json

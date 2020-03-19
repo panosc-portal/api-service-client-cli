@@ -1,17 +1,18 @@
-import Axios, { AxiosInstance } from 'axios';
 import * as fs from 'fs';
 import * as inquirer from 'inquirer';
 var querystring = require('querystring');
+const axios = require('axios');
 
 
-interface SSOConfig {
+interface IDPConfig {
   host: string;
-  realm: string;
+  endpoint: string;
+  url: string;
   clientId: string;
 }
 
 interface Config {
-  sso: SSOConfig;
+  idp: IDPConfig;
 }
 
 class TokenRequest {
@@ -44,30 +45,13 @@ export interface Token {
 }
 
 export class TokenManager {
-  private static TOKEN_FILENAME = '.token.json';
-  private _ssoClient: AxiosInstance;
+  private static TOKEN_FILENAME = 'token.json';
   private _currentToken: Token;
   private _configFilename: string = 'config.json';
   private _config: Config;
 
   set configFilename(value: string) {
     this._configFilename = value;
-  }
-
-  private get ssoClient(): AxiosInstance {
-    if (this._ssoClient == null) {
-
-      const url = `https://${this.config.sso.host}/auth`;
-
-      this._ssoClient = Axios.create({
-        baseURL: url,
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      });
-    }
-
-    return this._ssoClient;
   }
 
   private get config(): Config {
@@ -107,13 +91,12 @@ export class TokenManager {
 
         if (now.getTime() < tokenFromFile.expiresAtMs) {
           this._currentToken = tokenFromFile;
-          console.log(`Token is still valid`);
 
         } else {
           console.log('Token has expired: refreshing...');
 
           const tokenRequest = new TokenRequest({
-            client_id: this.config.sso.clientId,
+            client_id: this.config.idp.clientId,
             scope: 'openid',
             grant_type: 'refresh_token',
             refresh_token: tokenFromFile.refresh_token
@@ -121,13 +104,10 @@ export class TokenManager {
 
           try {
             this._currentToken = await this._getTokenFromServer(tokenRequest);
-            console.log(`... token refreshed successfully`);
-            if (this._currentToken.savedToDisk) {
-              console.log(`Token saved to ${TokenManager.TOKEN_FILENAME}`);
-            }
+            console.log('... token refreshed successfully' + (this._currentToken.savedToDisk ? ` (saved to ${TokenManager.TOKEN_FILENAME})` : ''));
           
           } catch (error) {
-            console.error('... failed to refresh token');
+            console.error(`... failed to refresh token: ${error.message}`);
           }
         }
       }
@@ -135,10 +115,10 @@ export class TokenManager {
       if (this._currentToken == null) {
         const credentials = await this._getCredentials();
 
-        console.log('Getting token from SSO...');
+        console.log('Getting token from IDP...');
 
         const tokenRequest = new TokenRequest({
-          client_id: this.config.sso.clientId,
+          client_id: this.config.idp.clientId,
           scope: 'openid',
           grant_type: 'password',
           username: credentials.username,
@@ -147,10 +127,7 @@ export class TokenManager {
   
         try {
           this._currentToken = await this._getTokenFromServer(tokenRequest);
-          console.log('... token obtained successfully');
-          if (this._currentToken.savedToDisk) {
-            console.log(`Token saved to ${TokenManager.TOKEN_FILENAME}`);
-          }
+          console.log('... token obtained successfully' + (this._currentToken.savedToDisk ? ` (saved to ${TokenManager.TOKEN_FILENAME})` : ''));
 
         } catch (error) {
           console.error('... failed to obtain token');
@@ -164,21 +141,26 @@ export class TokenManager {
 
   private async _getTokenFromServer(tokenRequest: TokenRequest): Promise<Token>{
     try {
+      // Stringify the request body parameters
       const data = querystring.stringify(tokenRequest);
-
       const now = new Date();
-      const response = await this.ssoClient.post(`/realms/${this.config.sso.realm}/protocol/openid-connect/token`, data);
+
+      // Call to IDP
+      const response = await axios({
+        method: 'POST',
+        url: this.config.idp.url,
+        data: data,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      })
+
       const tokenFromServer = response.data;
-
       tokenFromServer.expiresAtMs = now.getTime() + tokenFromServer.expires_in * 1000;
-
       tokenFromServer.savedToDisk = this._saveToken(tokenFromServer);
 
       return tokenFromServer;
 
     } catch (error) {
-      console.error(`Error getting token from SSO: ${error.message}`);
-      throw new Error(`Error getting token from SSO: ${error.message}`);
+      throw new Error(`Error getting token from IDP: ${error.message}`);
     }
   }
 
