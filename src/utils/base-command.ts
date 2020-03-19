@@ -32,44 +32,20 @@ export abstract class BaseCommand extends Command {
           'Content-Type': 'application/json'
         }
       });
-    }
 
-    // Decorate apiClient to get token first and add it to the headers
-    const getFunc = this._apiClient.get;
-    const postFunc = this._apiClient.post;
-    const deleteFunc = this._apiClient.delete;
-    
-    this._apiClient.get = async (url: string, config?: AxiosRequestConfig) => {
-      try {
-        config = await this.setHeaderAccessToken(config);
-
-        return getFunc(url, config);
+      // Use interceptor to add access_token
+      this._apiClient.interceptors.request.use(async (config: AxiosRequestConfig) => {
+        try {
+          const token = await this._tokenManager.getToken();
+          config.headers = { access_token: token.access_token };
       
-      } catch (error) {
-        throw error;
-      }
-    }
+          return config;
     
-    this._apiClient.post = async (url: string, data?: any, config?: AxiosRequestConfig) => {
-      try {
-        config = await this.setHeaderAccessToken(config);
-
-        return postFunc(url, data, config);
-      
-      } catch (error) {
-        throw error;
-      }
-    }
-    
-    this._apiClient.delete = async (url: string, config?: AxiosRequestConfig) => {
-      try {
-        config = await this.setHeaderAccessToken(config);
-
-        return deleteFunc(url, config);
-      
-      } catch (error) {
-        throw error;
-      }
+        } catch (error) {
+          console.error('Failed to add access token to request headers');
+          throw error;
+        }
+      });
     }
 
     return this._apiClient;
@@ -117,19 +93,4 @@ export abstract class BaseCommand extends Command {
     const response = await this.apiClient.post(`account/instances/${instanceId}/token`);
     return response.data;
   }
-
-
-  private async setHeaderAccessToken(config?: AxiosRequestConfig): Promise<AxiosRequestConfig> {
-    try {
-      const token = await this._tokenManager.getToken();
-      config = config || {};
-      config.headers = { access_token: token.access_token };
-  
-      return config;
-
-    } catch (error) {
-      throw error;
-    }
-  }
-
 }
