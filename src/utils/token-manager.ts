@@ -75,7 +75,7 @@ export class TokenManager {
       }
 
     } else {
-      console.warn(`No scheduler config file has been provided`);
+      console.warn(`No IDP config file has been provided`);
     }
 
     return null;
