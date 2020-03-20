@@ -165,6 +165,7 @@ export class TokenManager {
   }
 
   private async _getCredentials(): Promise<Credentials> {
+    console.log('login:')
     const credentials = await inquirer.prompt<{username: string, password: string}>([{
       type: 'input',
       name: 'username',
