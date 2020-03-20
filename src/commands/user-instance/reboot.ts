@@ -49,7 +49,7 @@ export default class UserInstanceRebootCommand extends BaseCommand {
       } 
     
     } else {
-      console.log('There are currently no active instances');
+      console.log('You currently have no active instances');
     }
 
   }

@@ -1,5 +1,5 @@
 import {Command, flags} from '@oclif/command'
-import Axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import Axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { Plan, Instance, InstanceCreatorDto, InstanceActionDto, AuthorisationToken } from '../models';
 import { TokenManager } from './token-manager';
 
@@ -46,6 +46,13 @@ export abstract class BaseCommand extends Command {
           throw error;
         }
       });
+
+      this._apiClient.interceptors.response.use((response) => response, (error) => {
+        if (error.response.data && error.response.data.error) {
+          console.error(error.response.data.error.message);
+        }
+        return Promise.reject(error);
+      })
     }
 
     return this._apiClient;
@@ -58,6 +65,11 @@ export abstract class BaseCommand extends Command {
 
   async getUserInstances(): Promise<Instance[]> {
     const response = await this.apiClient.get('account/instances');
+    return response.data;
+  }
+
+  async getUserInstance(instanceId: number): Promise<Instance> {
+    const response = await this.apiClient.get(`account/instances/${instanceId}`);
     return response.data;
   }
 

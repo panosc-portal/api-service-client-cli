@@ -49,7 +49,7 @@ export default class UserInstanceStartCommand extends BaseCommand {
       } 
     
     } else {
-      console.log('There are currently no stopped instances');
+      console.log('You currently have no stopped instances');
     }
 
   }

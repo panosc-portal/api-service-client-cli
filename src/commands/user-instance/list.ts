@@ -26,7 +26,7 @@ export default class UserInstanceListCommand extends BaseCommand {
       printTable(instanceTableData);
       
     } else {
-      console.log('The api service contains no instances');
+      console.log('You currently have no instances');
     }
   }
 }

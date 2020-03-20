@@ -46,7 +46,7 @@ export default class UserInstanceDeleteCommand extends BaseCommand {
         }
     
       } else {
-        console.log('The api service has no instances');
+        console.log('You currently have no instances');
       }
       
     } catch (error) {
