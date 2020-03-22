@@ -37,11 +37,11 @@ export interface Token {
   access_token: string;
   id_token: string;
   expires_in: number;
-  expiresAtMs: number;
   refresh_expires_in: number;
   refresh_token: string;
   token_type: string;
   savedToDisk: boolean;
+  timestampMs: number;
 }
 
 export class TokenManager {
@@ -89,11 +89,11 @@ export class TokenManager {
         const now = new Date();
         console.log(`Token read from ${TokenManager.TOKEN_FILENAME}`);
 
-        if (now.getTime() < tokenFromFile.expiresAtMs) {
+        if (now.getTime() < (tokenFromFile.timestampMs + tokenFromFile.expires_in * 1000)) {
           this._currentToken = tokenFromFile;
 
-        } else {
-          console.log('Token has expired: refreshing...');
+        } else if (now.getTime() < (tokenFromFile.timestampMs + tokenFromFile.refresh_expires_in * 1000)) {
+          console.log('Refreshing token...');
 
           const tokenRequest = new TokenRequest({
             client_id: this.config.idp.clientId,
@@ -109,6 +109,9 @@ export class TokenManager {
           } catch (error) {
             console.error(`... failed to refresh token: ${error.message}`);
           }
+
+        } else {
+          console.log('Token has expired');
         }
       }
 
@@ -154,7 +157,7 @@ export class TokenManager {
       })
 
       const tokenFromServer = response.data;
-      tokenFromServer.expiresAtMs = now.getTime() + tokenFromServer.expires_in * 1000;
+      tokenFromServer.timestampMs = now.getTime();
       tokenFromServer.savedToDisk = this._saveToken(tokenFromServer);
 
       return tokenFromServer;
