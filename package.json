@@ -20,7 +20,8 @@
     "eslint:fix": "eslint . --ext .ts --config .eslintrc --fix",
     "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
     "test": "nyc --extension .ts mocha --forbid-only \"test/**/*.test.ts\"",
-    "version": "oclif-dev readme && git add README.md"
+    "version": "oclif-dev readme && git add README.md",
+    "preinstall": "npx npm-force-resolutions"
   },
   "dependencies": {
     "@oclif/command": "^1",
@@ -47,6 +48,9 @@
     "nyc": "^14",
     "ts-node": "^8",
     "typescript": "^3.3"
+  },
+  "resolutions": {
+    "minimist": ">=1.2.2"
   },
   "files": [
     "/bin",
