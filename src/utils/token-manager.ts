@@ -19,6 +19,7 @@ class TokenRequest {
   scope: string;
   grant_type: string;
   client_id: string;
+  client_secret:string;
   username: string;
   password: string;
   refresh_token: string;
@@ -97,6 +98,7 @@ export class TokenManager {
 
           const tokenRequest = new TokenRequest({
             client_id: this.config.idp.clientId,
+            client_secret: this.config.idp.clientSecret,
             scope: 'openid',
             grant_type: 'refresh_token',
             refresh_token: tokenFromFile.refresh_token
@@ -122,6 +124,7 @@ export class TokenManager {
 
         const tokenRequest = new TokenRequest({
           client_id: this.config.idp.clientId,
+          client_secret: this.config.idp.clientSecret,
           scope: 'openid',
           grant_type: 'password',
           username: credentials.username,
