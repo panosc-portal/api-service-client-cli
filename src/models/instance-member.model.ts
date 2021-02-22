@@ -1,6 +1,3 @@
-import { Image } from './image.model';
-import { Flavour } from './flavour.model';
-import { Provider } from './provider.model';
 import { User } from './user.model';
 
 export class InstanceMember {

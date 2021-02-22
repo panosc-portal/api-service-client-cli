@@ -1,4 +1,4 @@
-import {Instance, Image, Flavour, Provider, Plan} from "../models"
+import {Instance, Image, Flavour, Provider, Plan, Role, User} from "../models"
 
 export function mapInstance(instance: Instance): any {
   return {
@@ -25,3 +25,23 @@ export function mapPlan(plan: Plan): any {
   }
 }
 
+
+export function mapRole(role: Role): any {
+  return {
+    Id: role.id,
+    Name: role.name,
+    Description: role.description
+  };
+}
+
+export function mapUser(user: User): any {
+  const roleNames = user.roles.map(({ name }) => name);
+
+  return {
+    Id: user.id,
+    Name: `${user.firstName} ${user.lastName}`,
+    Email: user.email,
+    Activated: user.activated,
+    Roles: roleNames
+  };
+}

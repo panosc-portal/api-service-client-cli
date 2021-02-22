@@ -1,6 +1,6 @@
 import {Command, flags} from '@oclif/command'
 import Axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Plan, Instance, InstanceCreatorDto, InstanceActionDto, AuthorisationToken } from '../models';
+import { Plan, Instance, InstanceCreatorDto, InstanceActionDto, AuthorisationToken, User, Role } from '../models';
 import { TokenManager } from './token-manager';
 
 export abstract class BaseCommand extends Command {
@@ -105,4 +105,43 @@ export abstract class BaseCommand extends Command {
     const response = await this.apiClient.post(`account/instances/${instanceId}/token`);
     return response.data;
   }
+
+
+  async getRoles(): Promise<Role[]> {
+    const response = await this.apiClient.get('users/roles');
+    return response.data;
+  }
+  
+  async getUsers(): Promise<User[]> {
+    const query = {
+      alias: 'user',
+      pagination: { limit: 100, offset: 0},
+      join: [
+        {member: 'user.roles', alias: 'role', select: true, type: 'LEFT_OUTER_JOIN'}
+      ]
+    }
+    const response = await this.apiClient.post("users/search", query);
+    return response.data.data;
+  }
+  
+  async getSupportUsers(): Promise<User[]> {
+    const response = await this.apiClient.get("users/support");
+    return response.data;
+  }
+
+  async addUserRole(userId: number, roleId: number): Promise<User> {
+    const response = await this.apiClient.post(
+      `/users/${userId}/roles/${roleId}`,
+      { userId: userId, roleId: roleId }
+    );
+    return response.data;
+  }
+
+  async deleteUserRole(userId: number, roleId: number): Promise<User> {
+    const response = await this.apiClient.delete(
+      `/users/${userId}/roles/${roleId}`
+    );
+    return response.data;
+  }
+
 }
