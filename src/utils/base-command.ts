@@ -26,7 +26,7 @@ export abstract class BaseCommand extends Command {
   protected get apiClient(): AxiosInstance {
     if (this._apiClient == null) {
       this._apiClient = Axios.create({
-        baseURL: `${this._apiServiceUrl}/api/v1`,
+        baseURL: `${this._apiServiceUrl}/api`,
         responseType: 'json',
         headers: {
           'Content-Type': 'application/json'
@@ -38,9 +38,9 @@ export abstract class BaseCommand extends Command {
         try {
           const token = await this._tokenManager.getToken();
           config.headers = { access_token: token.access_token };
-      
+
           return config;
-    
+
         } catch (error) {
           console.error('Failed to add access token to request headers');
           throw error;
@@ -111,7 +111,7 @@ export abstract class BaseCommand extends Command {
     const response = await this.apiClient.get('users/roles');
     return response.data;
   }
-  
+
   async getUsers(): Promise<User[]> {
     const query = {
       alias: 'user',
@@ -123,7 +123,7 @@ export abstract class BaseCommand extends Command {
     const response = await this.apiClient.post("users/search", query);
     return response.data.data;
   }
-  
+
   async getSupportUsers(): Promise<User[]> {
     const response = await this.apiClient.get("users/support");
     return response.data;
